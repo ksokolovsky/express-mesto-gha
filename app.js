@@ -2,7 +2,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const userRoutes = require('./routes/users');
 const cardRoutes = require('./routes/cards');
-
 const app = express();
 const PORT = 3000;
 
@@ -29,6 +28,10 @@ app.use('/cards', cardRoutes);
 
 app.get('/', (req, res) => {
   res.send('Привет, мир!');
+});
+
+app.use((req, res) => {
+  res.status(404).send({ message: 'Запрашиваемый ресурс не найден' });
 });
 
 app.listen(PORT, () => {
