@@ -1,4 +1,6 @@
 const Card = require('../models/card');
+const mongoose = require('mongoose');
+
 
 // Получение всех карточек
 exports.getCards = (req, res) => {
@@ -24,7 +26,6 @@ exports.createCard = (req, res) => {
 
 // Удаление карточки
 exports.deleteCard = (req, res) => {
-
   if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
     return res.status(400).send({ message: 'Некорректный ID карточки' });
   }
