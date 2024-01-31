@@ -17,9 +17,11 @@ exports.createCard = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: 'Переданы некорректные данные при создании карточки.' });
+        res.status(400).send({ message: 'Переданы некорректные данные при создании карточки.' });
+        return null;
       }
-      return res.status(500).send({ message: err.message });
+      res.status(500).send({ message: err.message });
+      return null;
     });
 };
 
@@ -33,7 +35,8 @@ exports.deleteCard = (req, res) => {
   Card.findByIdAndDelete(req.params.cardId)
     .then((card) => {
       if (!card) {
-        return res.status(404).send({ message: 'Карточка не найдена' });
+        res.status(404).send({ message: 'Карточка не найдена' });
+        return null;
       }
       res.send({ data: card });
       return null;
@@ -55,24 +58,27 @@ exports.likeCard = (req, res) => {
 // Убрать лайк с карточки
 exports.dislikeCard = (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
-    return res.status(400).send({ message: 'Некорректный ID карточки' });
+    res.status(400).send({ message: 'Некорректный ID карточки' });
+    return null;
   }
 
-  Card.findById(cardId)
+  Card.findById(req.params.cardId)
     .then(card => {
       if (!card) {
-        return res.status(404).send({ message: 'Карточка не найдена' });
+        res.status(404).send({ message: 'Карточка не найдена' });
+        return null;
       }
 
       return Card.findByIdAndUpdate(
-        cardId,
+        req.params.cardId,
         { $pull: { likes: req.user._id } },
         { new: true }
       );
     })
     .then(card => {
       if (card) {
-        return res.send({ data: card });
+        res.send({ data: card });
+        return null;
       }
     })
     .catch(err => res.status(500).send({ message: err.message }));
