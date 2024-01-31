@@ -34,7 +34,8 @@ exports.deleteCard = (req, res) => {
       if (!card) {
         return res.status(404).send({ message: 'Карточка не найдена' });
       }
-      return res.send({ data: card });
+      res.send({ data: card });
+      return null;
     })
     .catch((err) => res.status(500).send({ message: err.message }));
 };

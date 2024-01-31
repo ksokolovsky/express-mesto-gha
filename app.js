@@ -6,11 +6,7 @@ const cardRoutes = require('./routes/cards');
 const app = express();
 const PORT = 3000;
 
-mongoose.connect('mongodb://localhost:27017/mestodb').then(() => {
-  console.log('Успешно подключено к базе данных MongoDB');
-}).catch((error) => {
-  console.error(`Ошибка подключения к базе данных MongoDB: ${error}`);
-});
+mongoose.connect('mongodb://localhost:27017/mestodb');
 
 // Возможно не пропустит автотест и нужно будет заменить на устаревшие бодиПарсеры.
 app.use(express.json());
