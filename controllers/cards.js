@@ -30,13 +30,17 @@ exports.createCard = async (req, res) => {
 // удаляем карточку, если она наша
 exports.deleteCard = async (req, res) => {
   try {
-    const card = await Card.findByIdAndRemove(req.params.cardId);
+    if (!mongoose.isValidObjectId(req.params.cardId)) {
+      return res.status(400).send({ message: 'Некорректный ID карточки' });
+    }
+
+    const card = await Card.findByIdAndDelete(req.params.cardId);
 
     if (!card) {
       return res.status(404).send({ message: 'Карточка не найдена' });
     }
 
-    return res.send({ data: card }); // Добавлен return
+    return res.send({ message: `Карточка ${card.name} удалена` }); // Добавлен return
   } catch (error) {
     return res.status(500).send({ message: 'Ошибка на сервере' }); // Добавлен return
   }
@@ -68,6 +72,10 @@ exports.likeCard = async (req, res) => {
 // Убираем лайк с карточки, если он наш
 exports.dislikeCard = async (req, res) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.cardId)) {
+      return res.status(400).send({ message: 'Некорректный ID карточки' });
+    }
+
     const updatedCard = await Card.findByIdAndUpdate(
       req.params.cardId,
       { $pull: { likes: req.user._id } },
