@@ -16,7 +16,7 @@ exports.getUserById = (req, res) => {
       }
       return res.send({ data: user });
     })
-    .catch(() => res.status(500).send({ message: 'Ошибка при получении пользователя по ID' }));
+    .catch(() => res.status(400).send({ message: 'Ошибка при получении пользователя по ID' }));
 };
 
 // Создаем нового пользователя
