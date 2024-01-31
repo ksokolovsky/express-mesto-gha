@@ -28,61 +28,42 @@ exports.createCard = (req, res) => {
 exports.deleteCard = (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
     res.status(400).send({ message: 'Некорректный ID карточки' });
-    return; // Завершаем выполнение функции здесь
+    return;
   }
 
   Card.findByIdAndDelete(req.params.cardId)
     .then((card) => {
       if (!card) {
         res.status(404).send({ message: 'Карточка не найдена' });
-        return; // Завершаем выполнение функции здесь
+        return null;
       }
       res.send({ data: card });
-      // Не нужно возвращать значение после отправки ответа, просто завершаем функцию
+      return null;
     })
     .catch((err) => res.status(500).send({ message: err.message }));
 };
 
 // Поставить лайк карточке
 exports.likeCard = (req, res) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
-    res.status(400).send({ message: 'Некорректный ID карточки' });
-    return;
-  }
-
-  Card.findById(req.params.cardId)
-    .then((card) => {
-      if (!card) {
-        res.status(404).send({ message: 'Карточка не найдена' });
-        return;
-      }
-
-      Card.findByIdAndUpdate(
-        req.params.cardId,
-        { $addToSet: { likes: req.user._id } },
-        { new: true },
-      )
-        .then((updatedCard) => {
-          if (!updatedCard) {
-            res.status(404).send({ message: 'Карточка не найдена после попытки добавить лайк' });
-          } else {
-            res.send({ data: updatedCard });
-          }
-        });
-    })
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $addToSet: { likes: req.user._id } },
+    { new: true },
+  )
+    .then((card) => res.send({ data: card }))
     .catch((err) => res.status(500).send({ message: err.message }));
 };
 
 // Убрать лайк с карточки
 exports.dislikeCard = (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
-    return res.status(400).send({ message: 'Некорректный ID карточки' });
+    res.status(400).send({ message: 'Некорректный ID карточки' });
   }
 
   Card.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
-        return res.status(404).send({ message: 'Карточка не найдена' });
+        res.status(404).send({ message: 'Карточка не найдена' });
       }
 
       return Card.findByIdAndUpdate(
@@ -92,14 +73,9 @@ exports.dislikeCard = (req, res) => {
       );
     })
     .then((card) => {
-      if (!card) {
-        // Если после попытки обновления карточка не найдена, отправляем 404
-        return res.status(404).send({ message: 'Карточка не найдена после попытки удаления лайка' });
+      if (card) {
+        res.send({ data: card });
       }
-      // Отправляем данные карточки без явного return, так как это последнее действие в цепочке
-      res.send({ data: card });
     })
-    .catch((err) =>
-      // Обработка ошибок запроса
-      res.status(500).send({ message: err.message }));
+    .catch((err) => res.status(500).send({ message: err.message }));
 };
