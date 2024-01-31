@@ -26,7 +26,8 @@ exports.createCard = (req, res) => {
 // Удаление карточки
 exports.deleteCard = (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
-    return res.status(400).send({ message: 'Некорректный ID карточки' });
+    res.status(400).send({ message: 'Некорректный ID карточки' });
+    return null;
   }
 
   Card.findByIdAndDelete(req.params.cardId)
@@ -53,11 +54,26 @@ exports.likeCard = (req, res) => {
 
 // Убрать лайк с карточки
 exports.dislikeCard = (req, res) => {
-  Card.findByIdAndUpdate(
-    req.params.cardId,
-    { $pull: { likes: req.user._id } },
-    { new: true },
-  )
-    .then((card) => res.send({ data: card }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+  if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
+    return res.status(400).send({ message: 'Некорректный ID карточки' });
+  }
+
+  Card.findById(cardId)
+    .then(card => {
+      if (!card) {
+        return res.status(404).send({ message: 'Карточка не найдена' });
+      }
+
+      return Card.findByIdAndUpdate(
+        cardId,
+        { $pull: { likes: req.user._id } },
+        { new: true }
+      );
+    })
+    .then(card => {
+      if (card) {
+        return res.send({ data: card });
+      }
+    })
+    .catch(err => res.status(500).send({ message: err.message }));
 };
