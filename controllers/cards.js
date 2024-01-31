@@ -1,6 +1,5 @@
-const Card = require('../models/card');
 const mongoose = require('mongoose');
-
+const Card = require('../models/card');
 
 // Получение всех карточек
 exports.getCards = (req, res) => {
