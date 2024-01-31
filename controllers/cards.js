@@ -66,7 +66,7 @@ exports.dislikeCard = (req, res) => {
         res.status(404).send({ message: 'Карточка не найдена' });
       }
 
-      return Card.findByIdAndUpdate(
+      Card.findByIdAndUpdate(
         req.params.cardId,
         { $pull: { likes: req.user._id } },
         { new: true },
