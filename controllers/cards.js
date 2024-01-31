@@ -24,6 +24,11 @@ exports.createCard = (req, res) => {
 
 // Удаление карточки
 exports.deleteCard = (req, res) => {
+
+  if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
+    return res.status(400).send({ message: 'Некорректный ID карточки' });
+  }
+
   Card.findByIdAndDelete(req.params.cardId)
     .then((card) => {
       if (!card) {
