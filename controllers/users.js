@@ -8,9 +8,27 @@ exports.getAllUsers = (req, res) => {
 };
 
 // Получение пользователя по ИД
+// exports.getUserById = (req, res) => {
+//   User.findById(req.params.userId)
+//     .then((user) => {
+//       if (!user) {
+//         return res.status(404).send({ message: 'Пользователь не найден' });
+//       }
+//       return res.send({ data: user });
+//     })
+//     .catch(() => res.status(500).send({ message: 'Ошибка при получении пользователя по ID' }));
+// };
+
+//версия 2
 exports.getUserById = (req, res) => {
-  User.findById(req.params.userId)
-    .then((user) => {
+  const { userId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).send({ message: 'Некорректный формат ID пользователя' });
+  }
+
+  User.findById(userId)
+    .then(user => {
       if (!user) {
         return res.status(404).send({ message: 'Пользователь не найден' });
       }
