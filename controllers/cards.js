@@ -82,10 +82,10 @@ exports.dislikeCard = (req, res) => {
   Card.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
-        res.status(404).send({ message: 'Карточка не найдена' });
+        return res.status(404).send({ message: 'Карточка не найдена' });
       }
 
-      Card.findByIdAndUpdate(
+      return Card.findByIdAndUpdate(
         req.params.cardId,
         { $pull: { likes: req.user._id } },
         { new: true },
@@ -93,10 +93,13 @@ exports.dislikeCard = (req, res) => {
     })
     .then((card) => {
       if (!card) {
-        res.status(404).send({ message: 'Карточка не найдена после попытки удаления лайка' });
+        // Если после попытки обновления карточка не найдена, отправляем 404
+        return res.status(404).send({ message: 'Карточка не найдена после попытки удаления лайка' });
       }
+      // Отправляем данные карточки без явного return, так как это последнее действие в цепочке
       res.send({ data: card });
     })
     .catch((err) =>
+      // Обработка ошибок запроса
       res.status(500).send({ message: err.message }));
 };
