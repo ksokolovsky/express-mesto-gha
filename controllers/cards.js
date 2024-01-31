@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Card = require('../models/card');
 
 // Получаем все карточки
@@ -44,6 +45,10 @@ exports.deleteCard = async (req, res) => {
 // лайкаем карточку
 exports.likeCard = async (req, res) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.cardId)) {
+      return res.status(400).send({ message: 'Некорректный ID карточки' });
+    }
+
     const updatedCard = await Card.findByIdAndUpdate(
       req.params.cardId,
       { $addToSet: { likes: req.user._id } },
