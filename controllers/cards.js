@@ -47,7 +47,7 @@ exports.deleteCard = async (req, res, next) => {
       return;
     }
 
-    await card.remove();
+    await Card.findByIdAndDelete(req.params.cardId);
     res.send({ message: `Карточка ${card.name} удалена` });
   } catch (error) {
     next(error);

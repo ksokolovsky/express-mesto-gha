@@ -35,8 +35,8 @@ exports.getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .then((user) => {
       if (!user) {
-        next({ statusCode: 404, message: 'Пользователь не найден' }); // Убрано return
-        return; // Добавлено для явного выхода из функции
+        next({ statusCode: 404, message: 'Пользователь не найден' });
+        return;
       }
       res.send({ data: user });
     })
@@ -67,7 +67,6 @@ exports.createUser = (req, res, next) => {
           });
         })
         .catch((error) => {
-          console.log(error);
           if (error.code === 11000) {
             next({ statusCode: 409, message: 'Этот email уже зарегистрирован' });
           } else if (error.name === 'ValidationError') {
@@ -163,7 +162,7 @@ exports.login = (req, res, next) => {
             maxAge: 3600000 * 24 * 7,
             httpOnly: true,
           });
-          res.send({ token: token, message: 'Аутентификация прошла успешно' });
+          res.send({ token, message: 'Аутентификация прошла успешно' });
         })
         .catch(next);
     })

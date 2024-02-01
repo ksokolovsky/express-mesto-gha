@@ -13,8 +13,8 @@ const registrationSchema = celebrate({
 const loginSchema = celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
-    password: Joi.string().required()
-  })
+    password: Joi.string().required(),
+  }),
 });
 
 const cardIdSchema = {
@@ -26,7 +26,7 @@ const cardIdSchema = {
 const cardCreateSchema = {
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
-    link: Joi.string().required().uri(),
+    link: Joi.string().required().pattern(new RegExp('^(https?:\/\/)(www\.)?([A-Za-z0-9-._~:/?#[\\]@!$&\'()*+,;=]+)(#)?$')),
   }),
 };
 
