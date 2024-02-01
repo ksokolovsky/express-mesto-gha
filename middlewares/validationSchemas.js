@@ -30,7 +30,22 @@ const cardCreateSchema = {
   }),
 };
 
+const updateProfileSchema = celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+  }),
+});
+
+const updateAvatarSchema = celebrate({
+  body: Joi.object().keys({
+    avatar: Joi.string().pattern(new RegExp('^(https?:\/\/)(www\.)?([A-Za-z0-9-._~:/?#[\\]@!$&\'()*+,;=]+)(#)?$')),
+  }),
+});
+
 module.exports = {
+  updateProfileSchema,
+  updateAvatarSchema,
   registrationSchema,
   cardIdSchema,
   cardCreateSchema,
