@@ -155,7 +155,7 @@ exports.login = (req, res, next) => {
 
           const token = jwt.sign(
             { _id: user._id },
-            'some-secret-key',
+            'secret-key',
             { expiresIn: '7d' },
           );
 
@@ -163,7 +163,7 @@ exports.login = (req, res, next) => {
             maxAge: 3600000 * 24 * 7,
             httpOnly: true,
           });
-          res.send({ message: 'Аутентификация прошла успешно' });
+          res.send({ token: token, message: 'Аутентификация прошла успешно' });
         })
         .catch(next);
     })
