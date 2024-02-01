@@ -67,7 +67,8 @@ exports.createUser = (req, res, next) => {
           });
         })
         .catch((error) => {
-          if (error.name === 'MongoError' && error.code === 11000) {
+          console.log(error);
+          if (error.code === 11000) {
             next({ statusCode: 409, message: 'Этот email уже зарегистрирован' });
           } else if (error.name === 'ValidationError') {
             next({ statusCode: 400, message: 'Переданы некорректные данные при создании пользователя' });
