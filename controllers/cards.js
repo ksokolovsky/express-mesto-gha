@@ -2,55 +2,64 @@ const mongoose = require('mongoose');
 const Card = require('../models/card');
 
 // Получаем все карточки
-exports.getCards = async (req, res) => {
+exports.getCards = async (req, res, next) => {
   try {
     const cards = await Card.find({});
     res.send({ data: cards });
   } catch (error) {
-    res.status(500).send({ message: 'Ошибка на сервере' });
+    next(error);
   }
 };
 
 // Создаем новую карточку
-exports.createCard = async (req, res) => {
-  try {
-    const { name, link } = req.body;
-    const owner = req.user._id;
+exports.createCard = async (req, res, next) => {
+  const { name, link } = req.body;
+  const owner = req.user._id;
 
+  try {
     const card = await Card.create({ name, link, owner });
-    return res.status(201).send({ data: card });
+    res.status(201).send({ data: card });
   } catch (error) {
     if (error.name === 'ValidationError') {
-      return res.status(400).send({ message: 'Переданы некорректные данные для создания карточки' });
+      next({ statusCode: 400, message: 'Переданы некорректные данные для создания карточки' });
+    } else {
+      next(error);
     }
-    return res.status(500).send({ message: 'Ошибка на сервере' });
   }
 };
 
 // удаляем карточку, если она наша
-exports.deleteCard = async (req, res) => {
+exports.deleteCard = async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.cardId)) {
-      return res.status(400).send({ message: 'Некорректный ID карточки' });
+      next({ statusCode: 400, message: 'Некорректный ID карточки' });
+      return;
     }
 
-    const card = await Card.findByIdAndDelete(req.params.cardId);
-
+    const card = await Card.findById(req.params.cardId);
     if (!card) {
-      return res.status(404).send({ message: 'Карточка не найдена' });
+      next({ statusCode: 404, message: 'Карточка не найдена' });
+      return;
     }
 
-    return res.send({ message: `Карточка ${card.name} удалена` }); // Добавлен return
+    if (card.owner.toString() !== req.user._id) {
+      next({ statusCode: 403, message: 'Недостаточно прав для выполнения операции' });
+      return;
+    }
+
+    await card.remove();
+    res.send({ message: `Карточка ${card.name} удалена` });
   } catch (error) {
-    return res.status(500).send({ message: 'Ошибка на сервере' }); // Добавлен return
+    next(error);
   }
 };
 
 // лайкаем карточку
-exports.likeCard = async (req, res) => {
+exports.likeCard = async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.cardId)) {
-      return res.status(400).send({ message: 'Некорректный ID карточки' });
+      next({ statusCode: 400, message: 'Некорректный ID карточки' });
+      return;
     }
 
     const updatedCard = await Card.findByIdAndUpdate(
@@ -60,20 +69,22 @@ exports.likeCard = async (req, res) => {
     );
 
     if (!updatedCard) {
-      return res.status(404).send({ message: 'Карточка не найдена' });
+      next({ statusCode: 404, message: 'Карточка не найдена' });
+      return;
     }
 
-    return res.send({ data: updatedCard });
+    res.send({ data: updatedCard });
   } catch (error) {
-    return res.status(500).send({ message: 'Ошибка на сервере' });
+    next(error);
   }
 };
 
 // Убираем лайк с карточки, если он наш
-exports.dislikeCard = async (req, res) => {
+exports.dislikeCard = async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.cardId)) {
-      return res.status(400).send({ message: 'Некорректный ID карточки' });
+      next({ statusCode: 400, message: 'Некорректный ID карточки' });
+      return;
     }
 
     const updatedCard = await Card.findByIdAndUpdate(
@@ -83,11 +94,12 @@ exports.dislikeCard = async (req, res) => {
     );
 
     if (!updatedCard) {
-      return res.status(404).send({ message: 'Карточка не найдена' });
+      next({ statusCode: 404, message: 'Карточка не найдена' });
+      return;
     }
 
-    return res.send({ data: updatedCard });
+    res.send({ data: updatedCard });
   } catch (error) {
-    return res.status(500).send({ message: 'Ошибка на сервере' });
+    next(error);
   }
 };

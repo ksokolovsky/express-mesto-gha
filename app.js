@@ -1,34 +1,40 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const { errors } = require('celebrate');
 const userRoutes = require('./routes/users');
 const cardRoutes = require('./routes/cards');
+const { login } = require('./controllers/users');
+const auth = require('./middlewares/auth');
 
 const app = express();
 const PORT = 3000;
 
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
-// Возможно не пропустит автотест и нужно будет заменить на устаревшие бодиПарсеры.
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '65b97395dad914f670fd98b5',
-  };
+app.post('/signin', login);
 
-  next();
-});
-
-app.use('/users', userRoutes);
-app.use('/cards', cardRoutes);
-
-app.get('/', (req, res) => {
-  res.send('Привет, мир!');
-});
+app.use('/users', auth, userRoutes);
+app.use('/cards', auth, cardRoutes);
 
 app.use((req, res) => {
   res.status(404).send({ message: 'Запрашиваемый ресурс не найден' });
+});
+
+app.use(errors());
+
+// Вынуждено отключил ошибку линтера здесь, потому что экспресс требует,
+// чтобы next был перечислен, но как его использовать - я не знаю
+// eslint-disable-next-line no-unused-vars
+app.use((error, req, res, next) => {
+  const { statusCode = 500, message } = error;
+  res.status(statusCode).send({
+    message: statusCode === 500
+      ? 'На сервере произошла ошибка'
+      : message,
+  });
 });
 
 app.listen(PORT);
