@@ -10,6 +10,13 @@ const registrationSchema = celebrate({
   }).unknown(true),
 });
 
+const loginSchema = celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required()
+  })
+});
+
 const cardIdSchema = {
   params: Joi.object().keys({
     cardId: Joi.string().hex().length(24),
@@ -27,4 +34,5 @@ module.exports = {
   registrationSchema,
   cardIdSchema,
   cardCreateSchema,
+  loginSchema,
 };
