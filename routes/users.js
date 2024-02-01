@@ -5,10 +5,10 @@ const { getAllUsers, getUserById } = require('../controllers/users');
 const { updateProfile, updateAvatar } = require('../controllers/users');
 const { getCurrentUser } = require('../controllers/users');
 // const { createUser } = require('../controllers/users');
-const { updateProfileSchema, updateAvatarSchema } = require('../middlewares/validationSchemas');
+const { updateProfileSchema, updateAvatarSchema, userIdSchema } = require('../middlewares/validationSchemas');
 
 router.get('/', getAllUsers);
-router.get('/me', getCurrentUser);
+router.get('/me', userIdSchema, getCurrentUser);
 router.get('/:userId', getUserById);
 // router.post('/signup', registrationSchema, createUser);
 router.patch('/me', updateProfileSchema, updateProfile);
