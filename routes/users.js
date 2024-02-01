@@ -8,8 +8,8 @@ const { getCurrentUser } = require('../controllers/users');
 const { updateProfileSchema, updateAvatarSchema, userIdSchema } = require('../middlewares/validationSchemas');
 
 router.get('/', getAllUsers);
-router.get('/me', userIdSchema, getCurrentUser);
-router.get('/:userId', getUserById);
+router.get('/me', getCurrentUser);
+router.get('/:userId', userIdSchema, getUserById);
 // router.post('/signup', registrationSchema, createUser);
 router.patch('/me', updateProfileSchema, updateProfile);
 router.patch('/me/avatar', updateAvatarSchema, updateAvatar);
