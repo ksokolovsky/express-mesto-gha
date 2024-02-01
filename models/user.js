@@ -21,11 +21,11 @@ const userSchema = new mongoose.Schema({
     required: false,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
-      validator: function(v) {
+      validator(v) {
         return /^(https?:\/\/)(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+~#?&//=]*)/.test(v);
       },
-      message: props => `${props.value} не является допустимым URL-адресом!`
-    }
+      message: (props) => `${props.value} не является допустимым URL-адресом!`,
+    },
   },
   email: {
     type: String,

@@ -3,8 +3,9 @@ const mongoose = require('mongoose');
 const { errors } = require('celebrate');
 const userRoutes = require('./routes/users');
 const cardRoutes = require('./routes/cards');
-const { login } = require('./controllers/users');
+const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
+const { registrationSchema } = require('./middlewares/validationSchemas');
 
 const app = express();
 const PORT = 3000;
@@ -15,12 +16,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.post('/signin', login);
+app.post('/signup', registrationSchema, createUser);
 
 app.use('/users', auth, userRoutes);
 app.use('/cards', auth, cardRoutes);
 
 app.use((req, res) => {
-  res.status(404).send({ message: 'Запрашиваемый ресурс не найден' });
+  res.status(404).send({ message: 'Запрашиваемый ресурс не найден 1' });
 });
 
 app.use(errors());
