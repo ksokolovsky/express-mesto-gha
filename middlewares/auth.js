@@ -1,19 +1,28 @@
 const jwt = require('jsonwebtoken');
+const UnauthorizedError = require('../errors/unauthorized');
 
 module.exports = (req, res, next) => {
-  const { authorization } = req.headers;
+  // Авторизация через тело. Решил потестить авторизацию через куки
+  // const { authorization } = req.headers;
+  // if (!authorization || !authorization.startsWith('Bearer ')) {
+  //   next(new UnauthorizedError('Необходима авторизация'));
+  //   return;
+  // }
 
-  if (!authorization || !authorization.startsWith('Bearer ')) {
-    next({ statusCode: 401, message: 'Необходима авторизация' });
+  // const token = authorization.replace('Bearer ', '');
+
+  const token = req.cookies.jwt;
+
+  if (!token) {
+    next(new UnauthorizedError('Необходима авторизация'));
     return;
   }
 
-  const token = authorization.replace('Bearer ', '');
   try {
     const payload = jwt.verify(token, 'secret-key');
     req.user = payload;
     next();
   } catch (err) {
-    next({ statusCode: 401, message: 'Необходима авторизация' });
+    next(new UnauthorizedError('Необходима авторизация'));
   }
 };

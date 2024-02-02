@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
 const Card = require('../models/card');
+const BadRequestError = require('../errors/bad-request');
+const NotFoundError = require('../errors/not-found');
+const ForbiddenError = require('../errors/forbidden');
 
 // Получаем все карточки
 exports.getCards = async (req, res, next) => {
@@ -21,7 +24,7 @@ exports.createCard = async (req, res, next) => {
     res.status(201).send({ data: card });
   } catch (error) {
     if (error.name === 'ValidationError') {
-      next({ statusCode: 400, message: 'Переданы некорректные данные для создания карточки' });
+      next(new BadRequestError('Переданы некорректные данные для создания карточки'));
     } else {
       next(error);
     }
@@ -32,18 +35,18 @@ exports.createCard = async (req, res, next) => {
 exports.deleteCard = async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.cardId)) {
-      next({ statusCode: 400, message: 'Некорректный ID карточки' });
+      next(new BadRequestError('Некорректный ID карточки'));
       return;
     }
 
     const card = await Card.findById(req.params.cardId);
     if (!card) {
-      next({ statusCode: 404, message: 'Карточка не найдена' });
+      next(new NotFoundError('Карточка не найдена'));
       return;
     }
 
     if (card.owner.toString() !== req.user._id) {
-      next({ statusCode: 403, message: 'Недостаточно прав для выполнения операции' });
+      next(new ForbiddenError('Недостаточно прав'));
       return;
     }
 
@@ -58,7 +61,7 @@ exports.deleteCard = async (req, res, next) => {
 exports.likeCard = async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.cardId)) {
-      next({ statusCode: 400, message: 'Некорректный ID карточки' });
+      next(new BadRequestError('Некорректный ID карточки'));
       return;
     }
 
@@ -69,7 +72,7 @@ exports.likeCard = async (req, res, next) => {
     );
 
     if (!updatedCard) {
-      next({ statusCode: 404, message: 'Карточка не найдена' });
+      next(new NotFoundError('Карточка не найдена'));
       return;
     }
 
@@ -83,7 +86,7 @@ exports.likeCard = async (req, res, next) => {
 exports.dislikeCard = async (req, res, next) => {
   try {
     if (!mongoose.isValidObjectId(req.params.cardId)) {
-      next({ statusCode: 400, message: 'Некорректный ID карточки' });
+      next(new BadRequestError('Некорректный ID карточки'));
       return;
     }
 
@@ -94,7 +97,7 @@ exports.dislikeCard = async (req, res, next) => {
     );
 
     if (!updatedCard) {
-      next({ statusCode: 404, message: 'Карточка не найдена' });
+      next(new NotFoundError('Карточка не найдена'));
       return;
     }
 

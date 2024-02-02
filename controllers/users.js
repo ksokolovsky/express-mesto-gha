@@ -2,14 +2,18 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const validator = require('validator');
 const User = require('../models/user');
+const BadRequestError = require('../errors/bad-request');
+const ConflictError = require('../errors/conflict');
+const NotFoundError = require('../errors/not-found');
+const UnauthorizedError = require('../errors/unauthorized');
 
 // Получение всех пользователей
-exports.getAllUsers = async (req, res) => {
+exports.getAllUsers = async (req, res, next) => {
   try {
     const users = await User.find({});
-    res.send({ data: users });
+    return res.send({ data: users });
   } catch (error) {
-    res.status(500).send({ message: 'Ошибка на сервере' });
+    return next(error);
   }
 };
 
@@ -19,13 +23,13 @@ exports.getUserById = async (req, res, next) => {
     const user = await User.findById(req.params.userId);
 
     if (!user) {
-      return next({ statusCode: 404, message: 'Пользователь не найден' });
+      return next(new NotFoundError('Пользователь не найден'));
     }
 
     return res.send({ data: user }); // Добавлен return
   } catch (error) {
     if (error.name === 'CastError') {
-      return next({ statusCode: 400, message: 'Неверный формат id пользователя' });
+      return next(new BadRequestError('Неверный формат id пользователя'));
     }
     return next(error); // Добавлен return
   }
@@ -35,7 +39,7 @@ exports.getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .then((user) => {
       if (!user) {
-        next({ statusCode: 404, message: 'Пользователь не найден' });
+        next(new NotFoundError('Пользователь не найден'));
         return;
       }
       res.send({ data: user });
@@ -51,9 +55,9 @@ exports.createUser = (req, res, next) => {
   bcrypt.hash(password, 10)
     .then((hashedPassword) => {
       User.create({
-        name: name || 'Жак-Ив Кусто',
-        about: about || 'Исследователь',
-        avatar: avatar || 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+        name,
+        about,
+        avatar,
         email,
         password: hashedPassword,
       })
@@ -68,9 +72,9 @@ exports.createUser = (req, res, next) => {
         })
         .catch((error) => {
           if (error.code === 11000) {
-            next({ statusCode: 409, message: 'Этот email уже зарегистрирован' });
+            next(new ConflictError('Этот email уже зарегистрирован'));
           } else if (error.name === 'ValidationError') {
-            next({ statusCode: 400, message: 'Переданы некорректные данные при создании пользователя' });
+            next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
           } else {
             next(error);
           }
@@ -91,14 +95,14 @@ exports.updateProfile = async (req, res, next) => {
     );
 
     if (!updatedUser) {
-      next({ statusCode: 404, message: 'Пользователь не найден' });
+      next(new NotFoundError('Пользователь не найден'));
       return;
     }
 
     res.send({ data: updatedUser });
   } catch (error) {
     if (error.name === 'ValidationError') {
-      next({ statusCode: 400, message: 'Переданы некорректные данные для обновления профиля' });
+      next(new BadRequestError('Переданы некорректные данные для обновления профиля'));
     } else {
       next(error);
     }
@@ -117,14 +121,14 @@ exports.updateAvatar = async (req, res, next) => {
     );
 
     if (!updatedUser) {
-      next({ statusCode: 404, message: 'Пользователь не найден' });
+      next(new NotFoundError('Пользователь не найден'));
       return;
     }
 
     res.send({ data: updatedUser });
   } catch (error) {
     if (error.name === 'ValidationError') {
-      next({ statusCode: 400, message: 'Переданы некорректные данные для обновления аватара' });
+      next(new BadRequestError('Переданы некорректные данные для обновления аватара'));
     } else {
       next(error);
     }
@@ -135,34 +139,31 @@ exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
   if (!validator.isEmail(email)) {
-    next({ statusCode: 400, message: 'Некорректный формат email' });
+    next(new BadRequestError('Некорректный формат email'));
     return;
   }
 
   User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        next({ statusCode: 401, message: 'Неправильные почта или пароль' });
+        next(new UnauthorizedError('Неправильные почта или пароль'));
         return;
       }
 
       bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            next({ statusCode: 401, message: 'Неправильные почта или пароль' });
+            next(new UnauthorizedError('Неправильные почта или пароль'));
+            return;
           }
 
-          const token = jwt.sign(
-            { _id: user._id },
-            'secret-key',
-            { expiresIn: '7d' },
-          );
+          const token = jwt.sign({ _id: user._id }, 'secret-key', { expiresIn: '7d' });
 
           res.cookie('jwt', token, {
             maxAge: 3600000 * 24 * 7,
             httpOnly: true,
           });
-          res.send({ token, message: 'Аутентификация прошла успешно' });
+          res.send({ message: 'Аутентификация прошла успешно' }); // убрал токен из тела ответа
         })
         .catch(next);
     })
