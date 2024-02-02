@@ -12,7 +12,9 @@ const NotFoundError = require('./errors/not-found');
 const app = express();
 const PORT = 3000;
 
-mongoose.connect('mongodb://localhost:27017/mestodb');
+// mongoose.connect('mongodb://localhost:27017/mestodb'); тестирую ошибку при запуске сервера
+mongoose.connect('mongodb://127.0.0.1:27017/mestodb', { useNewUrlParser: true, useUnifiedTopology: true });
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
